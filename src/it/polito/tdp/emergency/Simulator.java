@@ -136,6 +136,7 @@ public class Simulator {
 			break ;
 			
 		case HEAL:
+			// paziente è uscito, si aumenta uno studio libero 
 			p.setState(State.OUT);
 			this.nHealedPatients++ ;
 			this.queue.add(new Event(time, EventType.FREE_STUDIO, null)) ;
@@ -144,10 +145,46 @@ public class Simulator {
 		case FREE_STUDIO:
 			
 			// verifica che sia davvero uno studio libero
+			if(this.studiLiberi>0) {
+				
+			}
 			
-			// trova il paziente più urgente da Patients
+			// trova il paziente più urgente da Patients che si trovano in sala d'aspetto 
+			// calcolare il minimo elemento della lista 
+			List<Patient> inSala = new ArrayList<>(); 
+			for(Patient ps: this.patients) {
+				if(ps.getState() == State.WHITE || ps.getState() == State.YELLOW || ps.getState() == State.RED) {
+					inSala.add(ps); 
+				}
+			}
+			if(inSala.size()>0) {
+				Patient best = inSala.get(0);
+				for (Patient p1: inSala) {
+					if(p1.comesBefore(best)) { // metodo comparatore che implementiamo noi 
+						best = p1; 
+						} 
+				}
 			
-			// schedula HEAL dopo il tempo di cura
+			//occupa lo studio 
+				this.studiLiberi --; 
+				
+				
+			// schedula HEAL dopo il tempo di cura in funzione della sua gravita
+			
+				if(best.getState() == State.WHITE) {
+					this.queue.add(new Event(time.plus(healWhite), EventType.HEAL, best));
+				}
+				
+				else if(best.getState() == State.YELLOW) {
+					this.queue.add(new Event(time.plus(healYellow), EventType.HEAL, best));
+				}
+				
+				else if(best.getState() == State.RED) {
+					this.queue.add(new Event(time.plus(healRed), EventType.HEAL, best));
+				}
+			}
+			
+			
 			
 			break ;
 		} // switch
